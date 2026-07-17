@@ -294,7 +294,7 @@ def _aggregate_agent(state: "AnalysisState") -> dict:
     #parsed = _call_hf(AGGREGATE_SYS, user_msg, model_id, max_tokens=1100)
     parsed = None
     try:
-        parsed = _call_llm(AGGREGATE_SYS, user_msg, max_tokens=1100)
+        parsed = _call_llm(AGGREGATE_SYS, user_msg,model_id,max_tokens=1100)
         
         if parsed:  # assuming parsed is dict-like when successful
             return {**parsed, "aggregate_source": "llm"}
