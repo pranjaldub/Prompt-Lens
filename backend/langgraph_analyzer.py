@@ -292,6 +292,7 @@ def _aggregate_agent(state: "AnalysisState") -> dict:
         f"PROMPT:\n\"\"\"\n{prompt}\n\"\"\"\n\nPER-METRIC SCORES (0-100):\n{json.dumps(metric_summary)}"
     )
     #parsed = _call_hf(AGGREGATE_SYS, user_msg, model_id, max_tokens=1100)
+    parsed = None
     try:
         parsed = _call_llm(AGGREGATE_SYS, user_msg, max_tokens=1100)
         
@@ -299,7 +300,7 @@ def _aggregate_agent(state: "AnalysisState") -> dict:
             return {**parsed, "aggregate_source": "llm"}
 
     except Exception as e:  # You can narrow this down (e.g. requests.exceptions, json.JSONDecodeError, etc.)
-        print(f"[aggregate_agent] LLM call failed: {e}")  # or use logging
+        logger.warning(f"[aggregate_agent] LLM call failed: {e}", exc_info=True) # or use logging
         # Fall through to heuristic
     # Backward-compat: use heuristic aggregate as fallback base.
     from server import heuristic_analysis  # local import to avoid cycle at import time
