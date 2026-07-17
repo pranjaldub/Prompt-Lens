@@ -38,7 +38,7 @@ logger = logging.getLogger("promptlens")
 HF_API_TOKEN = os.environ.get("HF_API_TOKEN", "").strip()
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "").strip()
 HF_MODEL_ID = os.environ.get("HF_MODEL_ID", "meta-llama/Llama-3.1-8B-Instruct")
-DEFAULT_MODEL = "llama-3.1-70b-versatile"   # Groq model
+DEFAULT_MODEL = "openai/gpt-oss-120b"   # Groq model
 _ENC = tiktoken.get_encoding("cl100k_base")
 
 
@@ -256,19 +256,19 @@ def call_hf_analysis(user_prompt: str, model_id: str) -> Optional[dict]:
 
 '''
 
-def call_llm(system: str, user: str, max_tokens: int = 1100, temperature: float = 0.25) -> Optional[dict]:
+def call_llm(system: str, user: str,model: Optional[str] = None, max_tokens: int = 1100, temperature: float = 0.25) -> Optional[dict]:
     """Try Groq first → fallback to HF → return parsed JSON or None"""
     messages = [
         {"role": "system", "content": system},
         {"role": "user", "content": user}
     ]
-
+    groq_model = model or DEFAULT_MODEL
     # 1. Try Groq (preferred)
     if GROQ_API_KEY:
         try:
             client = Groq(api_key=GROQ_API_KEY)
             resp = client.chat.completions.create(
-                model=DEFAULT_MODEL,
+                model=groq_model,
                 messages=messages,
                 max_tokens=max_tokens,
                 temperature=temperature,

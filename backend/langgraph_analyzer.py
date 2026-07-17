@@ -80,10 +80,10 @@ def _call_hf(system: str, user: str, model_id: str, max_tokens: int = 320) -> Op
         return None
 '''
 
-def _call_llm(system: str, user: str, max_tokens: int = 320) -> Optional[dict]:
+def _call_llm(system: str, user: str, model_id: str, max_tokens: int = 320) -> Optional[dict]:
     """Unified LLM call from server.py"""
     from server import call_llm
-    return call_llm(system, user, max_tokens=max_tokens, temperature=0.2)
+    return call_llm(system, user, model=model_id,max_tokens=max_tokens, temperature=0.2)
 
 # ---------- metric spec ---------------------------------------------------
 
@@ -170,7 +170,7 @@ def _make_metric_agent(key: str, spec: dict, heuristic_scores: dict) -> Callable
         model_id = state["model_id"]
         prompt = state["prompt"]
         started = time.time()
-        parsed = _call_llm(system, f"Prompt to judge:\n\"\"\"\n{prompt}\n\"\"\"", max_tokens=260)
+        parsed = _call_llm(system, f"Prompt to judge:\n\"\"\"\n{prompt}\n\"\"\"", model_id,max_tokens=260)
 
         heur = heuristic_scores.get(key, 50)
         if parsed and isinstance(parsed.get("score"), (int, float)):
