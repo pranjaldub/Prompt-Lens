@@ -835,9 +835,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,           # Change to True if using cookies/auth
     allow_origins=[
-        "http://localhost:3000",      # Local dev
-        "https://prompt-lens-*.vercel.app",   # All your preview deployments
-        "https://your-production-domain.com", # e.g. prompt-lens.cc or whatever
+        "*", # e.g. prompt-lens.cc or whatever
     ],
     allow_methods=["*"],
     allow_headers=["*"],
