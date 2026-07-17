@@ -1,0 +1,41 @@
+{
+  "summary": "Iteration 4 full verification of PromptLens v3 (landing page + richer metric schema). Backend pytest 5/5 GREEN in ~37s: /api/health, /api/metrics/definitions (10 defs incl. prompt_score/context_score/instruction_quality/complexity/predicted_success_rate/avg_response_quality with label/higher_is_better/description/formula/signals), /api/analyze (all 10 int metrics 0-100, category, missing_information[], 7 typed failure_risks with id/name/probability/severity∈{critical,high,medium,low}/description, typed suggestions with type∈{add,remove,modify,clarify} & impact∈{high,medium,low}, optimized_prompt, token_count/char_count/word_count/optimized_token_count, cost_estimates(9), primary_cost float, primary_cost_model='gpt-4o-mini', token_distribution 6 segments {name,value,color}, model_used, source ∈ {hf,heuristic}), empty prompt → 422, /api/analyze/stream emits start + result event with same schema (7 risks + 6 segments). Frontend UI e2e: landing / (nav-home/analyze/compare/metrics/history, landing-hero-title 'Ship prompts you can bet on.', landing-demo w/ landing-demo-gauge animating 34↔87, landing-cta-analyze/compare/bottom, landing-stats + stat-metrics/risks/costs/signup, landing-feature-0..5). /analyze: stream-mode ON by default, analyze-btn runs → analysis-view with prompt-score-gauge (int 0-100), primary-cost, success-rate, category-chip, source-chip, model-chip. 5 tabs (overview/metrics/risks/costs/rewrite). Overview: 4 primary cards (clarity/specificity/context-score/instruction-quality) + hover info icons + missing-info-list + suggestions-list (top 3) + score-radar. Metrics: metrics-bar-chart + 9 metric-<key> cards (clarity, specificity, ambiguity, context-score, instruction-quality, complexity, readability, predicted-success-rate, avg-response-quality) + suggestions-list. Risks: 7 risk cards (risk-hallucination/injection/ambiguity/conflict/context/format/tasks) with severity badge + probability bar + description. Costs: token-distribution donut + token-distribution-legend + cost-chart + cost-grid with 9 model cards. Rewrite: rewrite-panel + copy/download buttons. Regression: /compare, /metrics, /history routes load; /history row click preloads /analyze with analysis-view; non-stream toggle shows loading-state.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "All pages (console noise)", "issues": ["Repeated React warnings 'does not recognize the `%s` prop on a DOM element' and 'Received `%s` for a non-boolean attribute' — MUI v7 DOM prop leakage, non-blocking, carried over from prior iterations"]}
+    ]
+  },
+  "passed": [
+    "pytest 5/5 in 37s: test_health, test_metric_definitions (10 defs w/ v3 keys), test_analyze_full (schema incl. 7 risks + 6 token_distribution segments + typed suggestions), test_analyze_empty (422), test_analyze_stream (start+result w/ full v3 payload)",
+    "Landing /: all 15 required testids + landing-feature-0..5, animated gauge value 34↔87 verified between polls",
+    "/analyze: prompt-score-gauge integer 0-100, meta bar 6 chips/values, 5 tabs render",
+    "Overview: clarity-card/specificity-card/context-score-card/instruction-quality-card + hover info + missing-info-list + suggestions-list + score-radar",
+    "All Metrics: metrics-bar-chart + all 9 metric-<dashed-key> cards + suggestions-list",
+    "Risks: 7 risk cards with exact ids risk-hallucination/injection/ambiguity/conflict/context/format/tasks",
+    "Costs: token-distribution + legend + cost-chart + cost-grid with exactly 9 model cards",
+    "Rewrite: rewrite-panel + copy/download buttons",
+    "Regression: /compare, /metrics, /history load; history-row click navigates to /analyze and preloads analysis-view; stream toggle OFF shows loading-state"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py compute_token_distribution() correctly emits 6 typed segments with per-segment color and int values — matches spec exactly.",
+    "merge_with_defaults() gracefully normalizes both legacy string-list and new typed-dict suggestions from HF and clamps severities/impacts — robust.",
+    "AnalysisTabs MetaBar relies on ScoreGauge default testid='prompt-score-gauge' (no explicit override) — works but slightly implicit; consider passing testid explicitly for clarity.",
+    "AnalysisView.jsx (older component) is unused by AnalyzePage — still references old fields hallucination_risk/missing_context; safe to delete as dead code.",
+    "MUI v7 prop leakage console warnings still appear on every page (Drawer/List/ListItem — transient prop forwarding); tech-debt, non-blocking."
+  ],
+  "updated_files": ["/app/backend/tests/backend_test.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "N/A (no auth)",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "PromptLens v3 backend+frontend all green. HF still 504s transiently but heuristic fallback keeps /api/analyze under ~20s (well within ingress). backend_test.py rewritten for v3 schema (7 typed risks, 6 token_distribution segments, typed suggestions). Only dangling code smell is unused AnalysisView.jsx (legacy). Console noise from MUI v7 prop leakage remains non-blocking."
+}

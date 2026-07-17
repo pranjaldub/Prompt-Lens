@@ -1,0 +1,14 @@
+fastapi==0.110.1
+starlette==0.37.2
+uvicorn[standard]==0.25.0
+pydantic==2.13.4
+python-dotenv==1.2.2
+huggingface_hub==1.23.0
+langgraph==1.2.9
+tiktoken==0.13.0
+requests==2.34.2
+
+# Dev / testing
+pytest==9.1.1
+pytest-xdist==3.8.0
+httpx==0.28.1

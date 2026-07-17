@@ -1,0 +1,90 @@
+{
+  "theme": "dark",
+  "archetype": "Swiss & High-Contrast (Authority, Clarity, Truth) meets Terminal Retro-Futurism",
+  "colors": {
+    "background": "#09090B",
+    "surface": "#121214",
+    "surface_elevated": "#18181B",
+    "primary": "#EFEFEF",
+    "accent": "#FF3B30", 
+    "accent_secondary": "#007AFF",
+    "text_main": "#EDEDED",
+    "text_muted": "#A1A1AA",
+    "borders": "rgba(255, 255, 255, 0.08)",
+    "success": "#34C759",
+    "warning": "#FFCC00",
+    "error": "#FF3B30"
+  },
+  "typography": {
+    "headings": {
+      "fontFamily": "'IBM Plex Mono', 'Space Mono', monospace",
+      "weights": ["400", "700"],
+      "letterSpacing": "-0.04em",
+      "textTransform": "uppercase"
+    },
+    "body": {
+      "fontFamily": "'IBM Plex Sans', 'Inter', sans-serif",
+      "weights": ["400", "500", "600"]
+    },
+    "mono": {
+      "fontFamily": "'JetBrains Mono', 'Fira Code', monospace",
+      "weights": ["400"]
+    }
+  },
+  "layout": {
+    "style": "High Density Grid (Dashboards / Analytics) - Mode B",
+    "structure": "Split-panel layout. Left/Top for Input Configuration, Right/Bottom for Analytics and Output.",
+    "spacing_strategy": "Generous Spacing Philosophy but tight widget internals. Use MUI theme spacing.",
+    "corners": "Sharp, maximum 4px border radius. No pill shapes for generic containers.",
+    "elevation": "No soft shadows. Use 1px borders (rgba(255,255,255,0.08)) to indicate depth levels."
+  },
+  "visual_enhancers": {
+    "glassmorphism": "Avoid muddy gray. Use background #000000 with 60% opacity, strong backdrop-blur (12px), and 1px inner stroke.",
+    "gradients": "Do not use gradients for backgrounds. Use subtle, monochromatic grain or noise overlays if possible.",
+    "borders": "Expose the skeleton. Grid lines should be visible between major sections."
+  },
+  "components": {
+    "mui_customization": {
+      "general": "Heavily override default Material UI theme. Remove all default drop shadows (box-shadow: none). Override border radii to 0px or 4px.",
+      "buttons": "Square or 4px radius. High contrast. Primary buttons should be White background with Black text, or Black background with White border.",
+      "cards": "Flat background (#121214), 1px subtle border, no shadow. Hover states: slight border color change.",
+      "textfields": "Outlined variants only. Border color muted, active border stark white."
+    },
+    "monaco_editor": {
+      "theme": "vs-dark (customized to match #121214 background).",
+      "config": "Hide minimap, enable word wrap, remove line numbers if space is tight, use JetBrains Mono."
+    },
+    "recharts": {
+      "style": "Monochromatic lines/bars with Accent color (#FF3B30 or #007AFF) for data points. Remove axis lines, use subtle dotted grid lines (stroke: rgba(255,255,255,0.1)).",
+      "tooltip": "Custom dark tooltip matching the surface color with 1px border."
+    },
+    "toast": {
+      "library": "MUI Snackbar or Sonner if available. Keep them minimal, bottom-right, stark black background, white text, sharp edges."
+    }
+  },
+  "motion": {
+    "interactions": "Fast, precise micro-interactions (0.15s - 0.2s). Hovering on cards changes border from 0.08 to 0.3 opacity.",
+    "score_cards": "Animate numbers counting up on analysis completion."
+  },
+  "accessibility": {
+    "contrast": "Ensure all text meets APCA/WCAG AA standards. Main text on dark background must be highly legible.",
+    "testing": "All interactive and key informational elements MUST include a `data-testid` attribute (e.g., data-testid='analyze-button')."
+  },
+  "instructions_to_main_agent": [
+    "Strictly use Material UI (MUI) components for the UI infrastructure.",
+    "Create a custom MUI theme (createTheme) to enforce the colors, typography, and sharp shape rules defined here.",
+    "Implement a split-panel layout resembling Vercel/OpenAI Playground. The Monaco Editor goes on one side (input), and the Recharts / Score Cards / Optimized Diff go on the other.",
+    "Use Recharts for the Radar or Bar charts representing Clarity, Specificity, Ambiguity, etc.",
+    "For the side-by-side prompt comparison, build a clear diff view or dual text areas.",
+    "Prompt history should persist in localStorage and be accessible via a sidebar or drawer.",
+    "DO NOT use transparent backgrounds for dropdowns, modals, or overlapping surfaces. Always use a solid background with a border."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "You tend to converge toward generic, 'on distribution' outputs. In frontend design, this creates what users call the 'AI slop' aesthetic. Avoid this: make creative, distinctive frontends.",
+    "Strip Material UI of its 'Google' look. Make it look brutalist, technical, and high-end.",
+    "Do not center-align the app container. Left-align text for developer readability.",
+    "Never use AI assistant Emoji characters (🤖🧠💡) for icons. Use MUI Icons.",
+    "Create depth through layered design elements with z-index hierarchy and 1px borders, NOT shadows.",
+    "Always explicitly set text color on hover. Do not rely on inheritance."
+  ]
+}

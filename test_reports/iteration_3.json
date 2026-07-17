@@ -1,0 +1,31 @@
+{
+  "summary": "Iteration 3 retest of the 4 fixes from iteration 2 all PASS. Backend: /api/analyze now completes in ~15-20s and returns 200 with all 10 metrics (source='heuristic' when HF 504s) — pytest 5/5 green in 37s. Frontend: (a) Overview `hallucination-card` testid present. (b) /metrics page — all 10 dashed `metric-def-*` testids present including metric-def-hallucination-risk / metric-def-instruction-strength / metric-def-context-richness / metric-def-bias-risk; each of the 10 cards displays non-empty formula text. (c) /compare full flow: two Monaco editors, compare-btn works, winner-summary renders within ~20s using streaming under the hood, metric-compare-list + score-radar + compare-row-clarity/verbosity/hallucination-risk rows + word-diff all present. (d) Regression on /: streaming analyze -> analysis-view + all 4 tabs work, history drawer opens, /history row click preloads analysis-view.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Console noise (all pages)", "issues": ["Repeated React warnings 'does not recognize the `%s` prop on a DOM element' and 'Received `%s` for a non-boolean attribute `%s`' (MUI v7 prop leakage from Drawer/List — non-blocking, carried over from prior iterations)"]}
+    ]
+  },
+  "passed": [
+    "pytest 5/5: test_health, test_metric_definitions, test_analyze_full (200 in ~15s), test_analyze_empty (422), test_analyze_stream (start+result events with all 10 metrics)",
+    "/metrics: all 10 metric-def-<dashed-key> testids present; all 10 cards contain non-empty formula text (readability/structure/instruction_strength/context_richness/verbosity/bias_risk formulas now populated)",
+    "Home /: streaming analyze -> analysis-view + tab-overview/metrics/costs/rewrite render; hallucination-card testid present (renamed from hallucination-risk-card); all tabs clickable; history drawer opens",
+    "/compare: monaco editors x2, compare-btn triggers streamAnalyze (parallel), winner-summary renders in ~20s, metric-compare-list + score-radar + compare-row-clarity + compare-row-verbosity + compare-row-hallucination-risk + word-diff all present",
+    "/history: history-row-* click navigates back to / and preloads analysis-view"
+  ],
+  "test_report_links": ["/app/backend/tests/backend_test.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py:221 delays=[0,1] + client timeout=18s bounds worst-case /api/analyze at ~37s — safely under ingress timeout. Good fix.",
+    "ComparePage previously used raw underscored def.key for compare-row testids; fixed by testing agent to dashed form for spec parity (matches AnalysisTabs/MetricsPage convention).",
+    "MUI v7 DOM prop-leak warnings ('%s' / boolean attr) still spam the console on every page — should be tracked as tech debt (transient prop forwarding from styled Drawer/List/ListItem)."
+  ],
+  "updated_files": ["/app/frontend/src/pages/ComparePage.jsx"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All iteration-2 CRITICAL/HIGH issues resolved. Testing agent additionally dash-normalized compare-row-* testid in ComparePage.jsx line 39. HF still transiently 504s but backend now fails fast to heuristic within ~20s; both /api/analyze and /api/analyze/stream stay well under the ingress timeout. Only remaining non-blocking issue is MUI v7 DOM prop-leak console warnings."
+}

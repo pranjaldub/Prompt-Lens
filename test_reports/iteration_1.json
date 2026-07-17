@@ -1,0 +1,27 @@
+{
+  "summary": "First-finish smoke tests for PromptLens. Backend: /api/health, /api/models, /api/tokenize, /api/analyze (main + model override), and empty-prompt validation all pass. HF integration is live (source='hf', model_used matches override). Frontend loads with hero, Monaco editor, model select, analyze button. End-to-end flow: click Analyze -> loading-state -> analysis-view with all 4 score cards, category-chip, radar chart, cost chart, missing-context-list, suggestions-list, original + optimized panels and copy/download buttons. History drawer opens, shows 1 item, clear-history button present. Copy button clickable.",
+  "tested_scope": ["backend", "frontend", "integration"],
+  "passed": [
+    "GET /api/health -> ok=true, hf_configured=true, model=meta-llama/Llama-3.1-8B-Instruct",
+    "GET /api/models -> default matches, 4 options",
+    "POST /api/tokenize {'hello world'} -> token_count=2 (positive int)",
+    "POST /api/analyze main flow -> 200 with all required fields, scores 0-100 ints, source='hf', cost_estimates dict, missing_context list (4), suggestions list (3)",
+    "POST /api/analyze empty prompt -> 422 (validation)",
+    "POST /api/analyze with model_id override -> model_used matches",
+    "Frontend hero titles 'DISSECT ANY PROMPT.' and 'SHIP BETTER ONES.' render",
+    "Monaco editor pre-filled with default prompt; model-select and analyze-btn visible",
+    "Clicking analyze-btn shows loading-state then analysis-view within ~60s",
+    "All expected data-testids in analysis view (clarity/specificity/ambiguity/hallucination cards, category-chip, score-radar, cost-chart, missing-context-list, suggestions-list, original-panel, optimized-panel, copy/download buttons) each present count=1",
+    "History drawer opens via open-history-btn, shows 1 item after analysis, clear-history-btn present",
+    "original-panel-copy click successful"
+  ],
+  "failed": [],
+  "warnings": [
+    {"area": "frontend console", "issue": "React invalid DOM prop warnings for flexWrap/justifyContent/PaperProps (MUI Grid/Dialog v7 API change - lowercased in DOM). Non-blocking cosmetic.", "priority": "LOW"},
+    {"area": "recharts", "issue": "Occasional 'width(-1)/height(-1) chart' warnings during initial render before container measured. Non-blocking, charts render correctly.", "priority": "LOW"}
+  ],
+  "action_items": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "retest_needed": false,
+  "full_testing_deferred": true
+}

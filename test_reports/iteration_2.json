@@ -1,0 +1,60 @@
+{
+  "summary": "PromptLens v2 iteration 2 end-to-end testing. Backend: 3/5 pytest passes; /api/health, /api/metrics/definitions, and /api/analyze/stream (SSE) all pass with proper start/result events. /api/analyze non-streaming returns 502 through the public ingress when HF is slow because backend retries take >60s (ingress timeout). Frontend: streaming analyze flow works end-to-end (streaming console -> analysis-view with radar, tabs, 10 metric cards, costs grid, rewrite panel with unified/split word-diff, copy/download). History drawer and /history page both work; /history row click preloads the analysis. Non-streaming mode shows loading-state and no streaming-console. Multiple testid mismatches vs spec: (a) `hallucination-card` missing (code emits `hallucination-risk-card`), (b) MetricsPage emits `metric-def-<key>` using raw underscored keys (e.g., `metric-def-hallucination_risk`) instead of dashed spec form. Compare page (/compare) hero, editors and compare-btn render, but compare-btn call hits /api/analyze which 502s so winner-summary never renders — Compare flow is currently BROKEN on the public URL.",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "/api/analyze", "issue": "Returns 502 (Bad Gateway) through public ingress under HF slowness. HF InferenceClient timeout=60s x 3 retries with delays (0,2,5) can push total request past 90s; the emergent preview ingress terminates at ~60s. Backend does eventually return 200 with heuristic fallback locally (confirmed via curl to :8001 -> 200 in 97s, source='heuristic'), but the client never sees it. This breaks the Compare page and any non-streaming analyze call in production.", "priority": "CRITICAL"}
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "AnalysisTabs / ScoreCard (Overview)", "issue": "Missing testid `hallucination-card` — code renders `hallucination-risk-card` because PRIMARY_KEYS includes `hallucination_risk` and testid template is `${k.replace(/_/g,'-')}-card`. Spec asks for `hallucination-card`.", "selector": "[data-testid=\"hallucination-card\"]", "priority": "HIGH"},
+      {"component": "MetricsPage", "issue": "metric-def-<key> testids use raw underscored keys, e.g. `metric-def-hallucination_risk`, `metric-def-instruction_strength`, `metric-def-context_richness`, `metric-def-bias_risk`. Spec expects dashed form (`metric-def-hallucination-risk`, etc.). Fix: `data-testid={`metric-def-${m.key.replace(/_/g,'-')}`}` in MetricsPage.jsx.", "selector": "[data-testid^=\"metric-def-\"]", "priority": "HIGH"},
+      {"component": "MetricsPage cards", "issue": "6 of 10 metric cards (Readability, Structure, Instruction Strength, Context Richness, Verbosity, Bias Risk) do not display a Formula section — spec says each card should show description + formula. The static METRIC_FALLBACK entries for those keys have empty `formula` string.", "selector": "[data-testid^=\"metric-def-\"] FORMULA text", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [
+      {"flow": "Compare (/compare)", "issue": "compare-btn triggers /api/analyze for both prompts which returns 502 via ingress (see backend critical). winner-summary, score-radar overlay, metric-compare-list, compare-row-* never render. Compare page is unusable in production until backend is fixed or Compare switches to /api/analyze/stream.", "affected_selectors": ["[data-testid=\"winner-summary\"]","[data-testid=\"metric-compare-list\"]","[data-testid^=\"compare-row-\"]"]}
+    ],
+    "design_issues": [
+      {"screen": "AnalysisView (charts)", "issues": ["Recharts warns 'width(-1)/height(-1)' during initial render (non-blocking)"]},
+      {"screen": "Console noise", "issues": ["React 'does not recognize %s prop on a DOM element' warnings still repeat (MUI v7 prop leakage from prior iteration, unfixed)"]}
+    ]
+  },
+  "passed": [
+    "GET /api/health -> ok=true, hf_configured=true",
+    "GET /api/metrics/definitions returns 10-item array with required fields (key,label,higher_is_better,description,formula,signals) and all 10 required keys",
+    "POST /api/analyze empty prompt -> 422 (validation)",
+    "POST /api/analyze/stream: Content-Type text/event-stream, emits type=start, type=result (with all 10 metrics + payload fields), and type=end; source=heuristic when HF 504s (expected)",
+    "Frontend /: hero, Monaco pre-filled, all 4 nav testids, open-history-btn, model-select, analyze-btn, stream-mode-toggle default checked=true",
+    "Streaming analyze: streaming-console appears; analysis-view + analysis-tabs + tab-overview/metrics/costs/rewrite + score-radar all render",
+    "Overview tab: clarity-card, specificity-card, ambiguity-card present with clarity-card-info tooltip on hover",
+    "All Metrics tab: metrics-panel + metrics-bar-chart + all 10 metric-<dashed-key> cards render",
+    "Costs tab: costs-panel + cost-grid render",
+    "Rewrite tab: rewrite-panel, diff-mode-toggle, word-diff-unified default, rewrite-copy-btn, rewrite-download-btn; diff-split-btn -> word-diff-split + word-diff-original + word-diff-optimized",
+    "/history: history-row-* item present, clear-history-page-btn present, clicking a row navigates back to / and preloads analysis-view",
+    "Legacy history drawer via open-history-btn still opens with items",
+    "Stream OFF: loading-state appears, streaming-console does NOT (as expected)"
+  ],
+  "test_report_links": ["/app/backend/tests/backend_test.py","/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "Backend: shorten HF retry budget for /api/analyze so total end-to-end < 55s (e.g., 2 attempts, per-call timeout 20s, or drop retries when a 504 is seen), OR switch /api/analyze to stream first-token-quickly / heuristic-first with async HF enrichment. Current behavior 502s on preview ingress.",
+    "Frontend: rename testid in AnalysisTabs Overview mapping so the 4th primary card is `hallucination-card` (special-case that key, since PRIMARY_KEYS contains `hallucination_risk`).",
+    "Frontend: MetricsPage.jsx — dash-normalize the testid: `metric-def-${m.key.replace(/_/g,'-')}`.",
+    "Frontend: fill in `formula` strings for readability/structure/instruction_strength/context_richness/verbosity/bias_risk in METRIC_FALLBACK (and confirm backend /api/metrics/definitions returns non-empty formula for these).",
+    "Frontend: consider using /api/analyze/stream on Compare page so it survives HF slowness (Compare is currently blocked by the backend 502 issue)."
+  ],
+  "critical_code_review_comments": [
+    "server.py:220 `delays = [0, 2, 5]` with client timeout=60 creates worst-case ~3*60+7 = 187s for /api/analyze; must be bounded well under ingress timeout.",
+    "AnalysisTabs.jsx:154 testid derived from raw key — collides with spec name `hallucination-card` for the hallucination_risk metric.",
+    "MetricsPage.jsx:24 uses raw m.key without underscore-to-dash normalization, breaking testids for 4 metrics.",
+    "MUI Tab data-testid prop click works in Playwright (verified), so no change needed for tab click reliability.",
+    "server.py length 688 lines — reasonable but approaching threshold; consider extracting HF client + heuristic analyzer into modules for maintainability."
+  ],
+  "updated_files": ["/app/backend/tests/backend_test.py"],
+  "success_rate": {"backend": "60%", "frontend": "80%"},
+  "seed_data_creation": "none",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Public URL /api/analyze non-streaming intermittently 502s during HF 504 storms (Compare flow is affected). If backend HF retries are shortened, retest: Compare (/compare) full flow including winner-summary, metric-compare-list, compare-row-clarity, compare-row-verbosity. Also retest after `hallucination-card` and `metric-def-*` dashed testids are added. Test data currently in localStorage 'promptlens.history.v1' — clear via /history clear-history-page-btn between runs.",
+  "rca of the issue": "Root cause of Compare page failure & analyze 502: server.py `call_hf_analysis` performs up to 3 blocking chat_completion attempts with per-call timeout=60s and inter-call delays 0/2/5s. When HF returns 504 (currently frequent), total wall time on the endpoint exceeds the emergent preview ingress read timeout (~60s) — ingress emits 502 to the client before backend can execute its heuristic fallback and return 200. Streaming path is unaffected because it flushes `type:start` immediately, so the ingress keeps the connection open. Mitigation: (a) reduce retry attempts to 2 and per-call timeout to 20s, or (b) fail-fast to heuristic on the first 504, or (c) have the Compare page call /api/analyze/stream twice and parse the final result event."
+}
