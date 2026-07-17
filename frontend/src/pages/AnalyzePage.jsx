@@ -47,10 +47,10 @@ export default function AnalyzePage() {
       })
       .catch(() => {
         setModels({
-          default: "meta-llama/Llama-3.1-8B-Instruct",
-          options: ["meta-llama/Llama-3.1-8B-Instruct"],
+          default: "llama-3.1-8b-instant",
+          options: ["llama-3.1-8b-instant"],
         });
-        setModelId("meta-llama/Llama-3.1-8B-Instruct");
+        setModelId("llama-3.1-8b-instant");
       });
   }, []);
 
@@ -139,7 +139,7 @@ export default function AnalyzePage() {
               value={modelId}
               onChange={(e) => setModelId(e.target.value)}
               size="small"
-              sx={{ minWidth: 240, fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.8rem" }}
+              sx={{  width: "100%", minWidth: { sm: 240 }, fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.8rem" }}
               MenuProps={{
                 PaperProps: {
                   sx: {
