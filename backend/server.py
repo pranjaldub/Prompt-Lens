@@ -833,9 +833,12 @@ app.include_router(api_router)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_credentials=False,
-    #allow_origins=os.environ.get("CORS_ORIGINS", "*").split(","),
-    allow_origins=["prompt-lens-93klu9z59-pranjaldubs-projects.vercel.app"],
+    allow_credentials=True,           # Change to True if using cookies/auth
+    allow_origins=[
+        "http://localhost:3000",      # Local dev
+        "https://prompt-lens-*.vercel.app",   # All your preview deployments
+        "https://your-production-domain.com", # e.g. prompt-lens.cc or whatever
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
