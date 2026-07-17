@@ -783,15 +783,14 @@ async def list_models():
         "default": DEFAULT_MODEL,
         "provider": "groq" if GROQ_API_KEY else "hf",
         "options": [
-            "llama-3.1-70b-versatile",
+            "openai/gpt-oss-120b",
+            "openai/gpt-oss-20b",
+            "llama-3.3-70b-versatile",
             "llama-3.1-8b-instant",
-            "mixtral-8x7b-32768",
-            "gemma2-9b-it",
         ],
         "cost_reference_models": list(COST_TABLE_PER_1K.keys()),
         "primary_cost_model": PRIMARY_COST_MODEL,
     }
-
 
 @api_router.get("/metrics/definitions")
 async def metric_definitions():
