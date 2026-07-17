@@ -16,7 +16,7 @@ import re
 import time
 from pathlib import Path
 from typing import AsyncGenerator, List, Literal, Optional
-
+from groq import Groq
 import tiktoken
 from dotenv import load_dotenv
 from fastapi import APIRouter, FastAPI, HTTPException

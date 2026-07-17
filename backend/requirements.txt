@@ -7,6 +7,7 @@ huggingface_hub==1.23.0
 langgraph==1.2.9
 tiktoken==0.13.0
 requests==2.34.2
+groq>=0.9
 
 # Dev / testing
 pytest==9.1.1
