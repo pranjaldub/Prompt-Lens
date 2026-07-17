@@ -834,7 +834,8 @@ app.include_router(api_router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=False,
-    allow_origins=os.environ.get("CORS_ORIGINS", "*").split(","),
+    #allow_origins=os.environ.get("CORS_ORIGINS", "*").split(","),
+    allow_origins=["prompt-lens-93klu9z59-pranjaldubs-projects.vercel.app"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
