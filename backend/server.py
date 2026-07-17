@@ -36,8 +36,9 @@ logging.basicConfig(
 logger = logging.getLogger("promptlens")
 
 HF_API_TOKEN = os.environ.get("HF_API_TOKEN", "").strip()
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "").strip()
 HF_MODEL_ID = os.environ.get("HF_MODEL_ID", "meta-llama/Llama-3.1-8B-Instruct")
-
+DEFAULT_MODEL = "llama-3.1-70b-versatile"   # Groq model
 _ENC = tiktoken.get_encoding("cl100k_base")
 
 
@@ -223,7 +224,7 @@ def _extract_json(text: str) -> Optional[dict]:
     except json.JSONDecodeError:
         return None
 
-
+'''
 def call_hf_analysis(user_prompt: str, model_id: str) -> Optional[dict]:
     client = get_hf_client()
     if client is None:
@@ -253,7 +254,50 @@ def call_hf_analysis(user_prompt: str, model_id: str) -> Optional[dict]:
     logger.error("HF inference failed: %s", last_err)
     return None
 
+'''
 
+def call_llm(system: str, user: str, max_tokens: int = 1100, temperature: float = 0.25) -> Optional[dict]:
+    """Try Groq first → fallback to HF → return parsed JSON or None"""
+    messages = [
+        {"role": "system", "content": system},
+        {"role": "user", "content": user}
+    ]
+
+    # 1. Try Groq (preferred)
+    if GROQ_API_KEY:
+        try:
+            client = Groq(api_key=GROQ_API_KEY)
+            resp = client.chat.completions.create(
+                model=DEFAULT_MODEL,
+                messages=messages,
+                max_tokens=max_tokens,
+                temperature=temperature,
+            )
+            content = resp.choices[0].message.content if resp and resp.choices else ""
+            logger.info("✅ Used Groq")
+            return _extract_json(content)
+        except Exception as e:
+            logger.warning(f"Groq failed: {e}. Trying HF fallback...")
+
+    # 2. Fallback to HF
+    if HF_API_TOKEN:
+        client = get_hf_client()
+        if client:
+            try:
+                resp = client.chat_completion(
+                    messages=messages,
+                    model=HF_MODEL_ID,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                )
+                content = resp.choices[0].message.content if resp and resp.choices else ""
+                logger.info("✅ Used HF fallback")
+                return _extract_json(content)
+            except Exception as e:
+                logger.error(f"HF fallback failed: {e}")
+
+    logger.warning("Both Groq and HF unavailable → using heuristic only")
+    return None
 # ---------- Heuristic analyzer -------------------------------------------
 
 VAGUE_TERMS = {"thing", "stuff", "something", "somehow", "maybe", "kind of", "sort of", "etc", "and so on", "various", "good", "nice", "some"}
@@ -736,16 +780,13 @@ async def health():
 @api_router.get("/models")
 async def list_models():
     return {
-        "default": HF_MODEL_ID,
+        "default": DEFAULT_MODEL,
+        "provider": "groq" if GROQ_API_KEY else "hf",
         "options": [
-            "meta-llama/Llama-3.3-70B-Instruct",
+            "llama-3.1-70b-versatile",
             "llama-3.1-8b-instant",
-            "llama-3.3-70b-versatile",
-            "meta-llama/Llama-3.1-8B-Instruct",
-            "Qwen/Qwen2.5-7B-Instruct",
-            "google/gemma-2-9b-it",
-            "HuggingFaceH4/zephyr-7b-beta",
-            "prism-ml/Ternary-Bonsai-27B-gguf:together",
+            "mixtral-8x7b-32768",
+            "gemma2-9b-it",
         ],
         "cost_reference_models": list(COST_TABLE_PER_1K.keys()),
         "primary_cost_model": PRIMARY_COST_MODEL,
@@ -762,7 +803,7 @@ async def tokenize(payload: dict):
     text = str(payload.get("text", ""))
     return {"token_count": count_tokens(text), "char_count": len(text)}
 
-
+'''
 @api_router.post("/analyze", response_model=AnalyzeResponse)
 async def analyze(req: AnalyzeRequest):
     prompt = req.prompt.strip()
@@ -774,7 +815,18 @@ async def analyze(req: AnalyzeRequest):
     from langgraph_analyzer import run_analysis
     lg_state = await loop.run_in_executor(None, run_analysis, prompt, model_id)
     return AnalyzeResponse(**build_response_from_langgraph(prompt, lg_state, model_id))
-
+'''
+@api_router.post("/analyze", response_model=AnalyzeResponse)
+async def analyze(req: AnalyzeRequest):
+    prompt = req.prompt.strip()
+    if not prompt:
+        raise HTTPException(status_code=400, detail="Empty prompt")
+    
+    model_id = req.model_id or DEFAULT_MODEL
+    loop = asyncio.get_event_loop()
+    from langgraph_analyzer import run_analysis
+    lg_state = await loop.run_in_executor(None, run_analysis, prompt, model_id)
+    return AnalyzeResponse(**build_response_from_langgraph(prompt, lg_state, model_id))
 
 # ---------- Streaming endpoint (SSE) -------------------------------------
 

@@ -55,7 +55,7 @@ def _extract_json(text: str) -> Optional[dict]:
     except json.JSONDecodeError:
         return None
 
-
+'''
 def _call_hf(system: str, user: str, model_id: str, max_tokens: int = 320) -> Optional[dict]:
     c = _client()
     if c is None:
@@ -78,7 +78,12 @@ def _call_hf(system: str, user: str, model_id: str, max_tokens: int = 320) -> Op
     except Exception as e:  # noqa: BLE001
         logger.debug("HF metric-agent error: %s", e)
         return None
+'''
 
+def _call_llm(system: str, user: str, max_tokens: int = 320) -> Optional[dict]:
+    """Unified LLM call from server.py"""
+    from server import call_llm
+    return call_llm(system, user, max_tokens=max_tokens, temperature=0.2)
 
 # ---------- metric spec ---------------------------------------------------
 
@@ -165,7 +170,7 @@ def _make_metric_agent(key: str, spec: dict, heuristic_scores: dict) -> Callable
         model_id = state["model_id"]
         prompt = state["prompt"]
         started = time.time()
-        parsed = _call_hf(system, f"Prompt to judge:\n\"\"\"\n{prompt}\n\"\"\"", model_id, max_tokens=260)
+        parsed = _call_llm(system, f"Prompt to judge:\n\"\"\"\n{prompt}\n\"\"\"", max_tokens=260)
 
         heur = heuristic_scores.get(key, 50)
         if parsed and isinstance(parsed.get("score"), (int, float)):
@@ -288,7 +293,7 @@ def _aggregate_agent(state: "AnalysisState") -> dict:
     )
     #parsed = _call_hf(AGGREGATE_SYS, user_msg, model_id, max_tokens=1100)
     try:
-        parsed = _call_hf(AGGREGATE_SYS, user_msg, model_id, max_tokens=1100)
+        parsed = _call_llm(AGGREGATE_SYS, user_msg, max_tokens=1100)
         
         if parsed:  # assuming parsed is dict-like when successful
             return {**parsed, "aggregate_source": "llm"}
