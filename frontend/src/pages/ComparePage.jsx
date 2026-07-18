@@ -3,7 +3,6 @@ import {
   Box,
   Button,
   CircularProgress,
-  Grid,
   Stack,
   Typography,
 } from "@mui/material";
@@ -39,16 +38,17 @@ const DeltaBar = ({ def, a, b }) => {
       data-testid={`compare-row-${def.key.replace(/_/g, "-")}`}
       sx={{
         display: "grid",
-        gridTemplateColumns: "1fr 130px 60px 130px 1fr",
+        gridTemplateColumns: { xs: "1fr 34px 52px 34px 1fr", sm: "1fr 130px 60px 130px 1fr" },
         alignItems: "center",
-        gap: 1.5,
-        px: 1.25,
+        gap: { xs: 0.75, sm: 1.5 },
+        px: { xs: 0.75, sm: 1.25 },
         py: 1,
         borderBottom: "1px solid rgba(255,255,255,0.06)",
+        minWidth: 0,
       }}
     >
       {/* A bar */}
-      <Box sx={{ position: "relative", height: 8, backgroundColor: "rgba(255,255,255,0.05)" }}>
+      <Box sx={{ position: "relative", height: 8, backgroundColor: "rgba(255,255,255,0.05)", minWidth: 0 }}>
         <Box
           sx={{
             position: "absolute",
@@ -63,7 +63,7 @@ const DeltaBar = ({ def, a, b }) => {
       <Typography
         sx={{
           fontFamily: "'IBM Plex Mono', monospace",
-          fontSize: "0.8rem",
+          fontSize: { xs: "0.68rem", sm: "0.8rem" },
           textAlign: "right",
           color: winnerA ? "#34C759" : "#EDEDED",
         }}
@@ -73,11 +73,13 @@ const DeltaBar = ({ def, a, b }) => {
       <Typography
         sx={{
           fontFamily: "'IBM Plex Mono', monospace",
-          fontSize: "0.65rem",
+          fontSize: { xs: "0.55rem", sm: "0.65rem" },
           textAlign: "center",
           color: "text.secondary",
           textTransform: "uppercase",
-          letterSpacing: "0.04em",
+          letterSpacing: "0.02em",
+          lineHeight: 1.2,
+          overflowWrap: "break-word",
         }}
       >
         {def.label}
@@ -85,14 +87,14 @@ const DeltaBar = ({ def, a, b }) => {
       <Typography
         sx={{
           fontFamily: "'IBM Plex Mono', monospace",
-          fontSize: "0.8rem",
+          fontSize: { xs: "0.68rem", sm: "0.8rem" },
           textAlign: "left",
           color: winnerB ? "#34C759" : "#EDEDED",
         }}
       >
         {bVal}
       </Typography>
-      <Box sx={{ position: "relative", height: 8, backgroundColor: "rgba(255,255,255,0.05)" }}>
+      <Box sx={{ position: "relative", height: 8, backgroundColor: "rgba(255,255,255,0.05)", minWidth: 0 }}>
         <Box
           sx={{
             position: "absolute",
@@ -169,20 +171,24 @@ export default function ComparePage() {
         </Typography>
       </Box>
 
-      <Grid container spacing={2}>
-        <Grid item xs={12} md={6}>
-          <Stack spacing={1}>
-            <Typography variant="h6" sx={{ fontSize: "0.72rem", color: "#7CB5FF" }}>PROMPT A</Typography>
-            <PromptEditor value={promptA} onChange={setPromptA} disabled={loading} />
-          </Stack>
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Stack spacing={1}>
-            <Typography variant="h6" sx={{ fontSize: "0.72rem", color: "#FF9B94" }}>PROMPT B</Typography>
-            <PromptEditor value={promptB} onChange={setPromptB} disabled={loading} />
-          </Stack>
-        </Grid>
-      </Grid>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+          gap: 2,
+          alignItems: "start",
+          minWidth: 0,
+        }}
+      >
+        <Stack spacing={1} sx={{ minWidth: 0 }}>
+          <Typography variant="h6" sx={{ fontSize: "0.72rem", color: "#7CB5FF" }}>PROMPT A</Typography>
+          <PromptEditor value={promptA} onChange={setPromptA} disabled={loading} />
+        </Stack>
+        <Stack spacing={1} sx={{ minWidth: 0 }}>
+          <Typography variant="h6" sx={{ fontSize: "0.72rem", color: "#FF9B94" }}>PROMPT B</Typography>
+          <PromptEditor value={promptB} onChange={setPromptB} disabled={loading} />
+        </Stack>
+      </Box>
 
       <Stack direction="row" spacing={2} alignItems="center">
         <Button
@@ -206,31 +212,35 @@ export default function ComparePage() {
 
       {resA && resB && (
         <>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <Box sx={{ border: "1px solid rgba(255,255,255,0.08)", backgroundColor: "#121214", p: 2 }}>
-                <Typography variant="h6" sx={{ fontSize: "0.72rem", mb: 1 }}>QUALITY MATRIX · A (BLUE) vs B (RED)</Typography>
-                <ScoreRadar
-                  scores={resA}
-                  secondScores={resB}
-                  definitions={definitions}
-                  labelA="A"
-                  labelB="B"
-                  height={340}
-                />
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+              gap: 2,
+              alignItems: "start",
+              minWidth: 0,
+            }}
+          >
+            <Box sx={{ border: "1px solid rgba(255,255,255,0.08)", backgroundColor: "#121214", p: 2, minWidth: 0 }}>
+              <Typography variant="h6" sx={{ fontSize: "0.72rem", mb: 1 }}>QUALITY MATRIX · A (BLUE) vs B (RED)</Typography>
+              <ScoreRadar
+                scores={resA}
+                secondScores={resB}
+                definitions={definitions}
+                labelA="A"
+                labelB="B"
+                height={340}
+              />
+            </Box>
+            <Box sx={{ border: "1px solid rgba(255,255,255,0.08)", backgroundColor: "#121214", p: 0, minWidth: 0 }} data-testid="metric-compare-list">
+              <Box sx={{ p: 1.5, borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+                <Typography variant="h6" sx={{ fontSize: "0.72rem" }}>METRIC-BY-METRIC (WINNER HIGHLIGHTED)</Typography>
               </Box>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Box sx={{ border: "1px solid rgba(255,255,255,0.08)", backgroundColor: "#121214", p: 0 }} data-testid="metric-compare-list">
-                <Box sx={{ p: 1.5, borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-                  <Typography variant="h6" sx={{ fontSize: "0.72rem" }}>METRIC-BY-METRIC (WINNER HIGHLIGHTED)</Typography>
-                </Box>
-                {ALL_METRIC_KEYS.map((k) => (
-                  <DeltaBar key={k} def={findMetric(definitions, k)} a={resA[k]} b={resB[k]} />
-                ))}
-              </Box>
-            </Grid>
-          </Grid>
+              {ALL_METRIC_KEYS.map((k) => (
+                <DeltaBar key={k} def={findMetric(definitions, k)} a={resA[k]} b={resB[k]} />
+              ))}
+            </Box>
+          </Box>
 
           <Stack direction="row" spacing={2} alignItems="center" justifyContent="space-between">
             <Typography variant="h6" sx={{ fontSize: "0.75rem" }}>WORD-LEVEL DIFF · A → B</Typography>
