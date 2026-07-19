@@ -128,7 +128,7 @@ export default function AnalysisTabs({ result, originalPrompt, definitions }) {
   if (!result) return null;
 
   return (
-    <Stack spacing={2.5} data-testid="analysis-view">
+    <Stack spacing={2.5} data-testid="analysis-view" sx={{ minWidth: 0 }}>
       <MetaBar result={result} />
 
       <Tabs

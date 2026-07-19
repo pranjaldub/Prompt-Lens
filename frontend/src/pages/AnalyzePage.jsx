@@ -4,7 +4,6 @@ import {
   Button,
   CircularProgress,
   FormControlLabel,
-  Grid,
   MenuItem,
   Select,
   Stack,
@@ -111,97 +110,103 @@ export default function AnalyzePage() {
   };
 
   return (
-    <Grid container spacing={3}>
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: { xs: "1fr", lg: "5fr 7fr" },
+        gap: 3,
+        alignItems: "start",
+        minWidth: 0,
+      }}
+    >
       {/* Left: editor + controls */}
-      <Grid item xs={12} lg={5}>
-        <Stack spacing={2.5}>
-          <Box>
-            <Typography
-              variant="h1"
-              sx={{ fontSize: { xs: "2rem", md: "2.5rem" }, lineHeight: 1.05, mb: 1.5 }}
-              data-testid="hero-title"
-            >
-              Dissect any prompt.
-              <br />
-              <Box component="span" sx={{ color: "#FF3B30" }}>Ship better ones.</Box>
-            </Typography>
-            <Typography variant="body2" sx={{ maxWidth: 480, fontSize: "0.85rem" }}>
-              Paste a prompt. PromptLens scores 10 dimensions of quality, streams the reasoning
-              live, and produces an optimized rewrite with word-level diff.
-            </Typography>
-          </Box>
+      <Stack spacing={2.5} sx={{ minWidth: 0 }}>
+        <Box>
+          <Typography
+            variant="h1"
+            sx={{ fontSize: { xs: "2rem", md: "2.5rem" }, lineHeight: 1.05, mb: 1.5 }}
+            data-testid="hero-title"
+          >
+            Dissect any prompt.
+            <br />
+            <Box component="span" sx={{ color: "#FF3B30" }}>Ship better ones.</Box>
+          </Typography>
+          <Typography variant="body2" sx={{ maxWidth: 480, fontSize: "0.85rem" }}>
+            Paste a prompt. PromptLens scores 10 dimensions of quality, streams the reasoning
+            live, and produces an optimized rewrite with word-level diff.
+          </Typography>
+        </Box>
 
-          <PromptEditor value={prompt} onChange={setPrompt} disabled={loading} />
+        <PromptEditor value={prompt} onChange={setPrompt} disabled={loading} />
 
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} alignItems="stretch">
-            <Select
-              data-testid="model-select"
-              value={modelId}
-              onChange={(e) => setModelId(e.target.value)}
-              size="small"
-              sx={{  width: "100%", minWidth: { sm: 240 }, fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.8rem" }}
-              MenuProps={{
-                PaperProps: {
-                  sx: {
-                    backgroundColor: "#121214",
-                    border: "1px solid rgba(255,255,255,0.12)",
-                    borderRadius: 0.5,
-                  },
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} alignItems="stretch">
+          <Select
+            data-testid="model-select"
+            value={modelId}
+            onChange={(e) => setModelId(e.target.value)}
+            size="small"
+            sx={{  width: "100%", minWidth: { sm: 240 }, fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.8rem" }}
+            MenuProps={{
+              PaperProps: {
+                sx: {
+                  backgroundColor: "#121214",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  borderRadius: 0.5,
                 },
-              }}
-            >
-              {(models.options || []).map((m) => (
-                <MenuItem key={m} value={m} sx={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.8rem" }}>
-                  {m}
-                </MenuItem>
-              ))}
-            </Select>
-            <Button
-              data-testid="analyze-btn"
-              variant="contained"
-              color="primary"
-              size="large"
-              onClick={handleAnalyze}
-              disabled={!canAnalyze}
-              startIcon={
-                loading ? (
-                  <CircularProgress size={14} thickness={5} sx={{ color: "#09090B" }} />
-                ) : (
-                  <AutoAwesomeIcon fontSize="small" />
-                )
-              }
-              sx={{ flex: 1, py: 1.25 }}
-            >
-              {loading ? "Analyzing…" : "Analyze Prompt"}
-            </Button>
-          </Stack>
-
-          <FormControlLabel
-            control={
-              <Switch
-                checked={streamMode}
-                onChange={(e) => setStreamMode(e.target.checked)}
-                data-testid="stream-mode-toggle"
-                size="small"
-                sx={{
-                  "& .MuiSwitch-thumb": { backgroundColor: streamMode ? "#FF3B30" : "#71717A" },
-                  "& .MuiSwitch-track": { backgroundColor: "rgba(255,255,255,0.15) !important" },
-                }}
-              />
+              },
+            }}
+          >
+            {(models.options || []).map((m) => (
+              <MenuItem key={m} value={m} sx={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.8rem" }}>
+                {m}
+              </MenuItem>
+            ))}
+          </Select>
+          <Button
+            data-testid="analyze-btn"
+            variant="contained"
+            color="primary"
+            size="large"
+            onClick={handleAnalyze}
+            disabled={!canAnalyze}
+            startIcon={
+              loading ? (
+                <CircularProgress size={14} thickness={5} sx={{ color: "#09090B" }} />
+              ) : (
+                <AutoAwesomeIcon fontSize="small" />
+              )
             }
-            label={
-              <Typography sx={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.72rem", color: "text.secondary" }}>
-                Live token streaming
-              </Typography>
-            }
-          />
-
-          {/* Agent progress renders in the right column during loading */}
+            sx={{ flex: 1, py: 1.25 }}
+          >
+            {loading ? "Analyzing…" : "Analyze Prompt"}
+          </Button>
         </Stack>
-      </Grid>
+
+        <FormControlLabel
+          control={
+            <Switch
+              checked={streamMode}
+              onChange={(e) => setStreamMode(e.target.checked)}
+              data-testid="stream-mode-toggle"
+              size="small"
+              sx={{
+                "& .MuiSwitch-thumb": { backgroundColor: streamMode ? "#FF3B30" : "#71717A" },
+                "& .MuiSwitch-track": { backgroundColor: "rgba(255,255,255,0.15) !important" },
+              }}
+            />
+          }
+          label={
+            <Typography sx={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: "0.72rem", color: "text.secondary" }}>
+              Live token streaming
+            </Typography>
+          }
+        />
+
+        {/* Agent progress renders in the right column during loading */}
+      </Stack>
 
       {/* Right: analysis */}
-      <Grid item xs={12} lg={7}>
+      <Box sx={{ minWidth: 0 }}>
         {!result && !loading && (
           <Box
             data-testid="empty-state"
@@ -268,7 +273,7 @@ export default function AnalyzePage() {
         {result && !loading && (
           <AnalysisTabs result={result} originalPrompt={analyzedPrompt} definitions={definitions} />
         )}
-      </Grid>
-    </Grid>
+      </Box>
+    </Box>
   );
 }
