@@ -180,7 +180,7 @@ export default function AnalyzePage() {
       flexGrow: 1,
       minWidth: 180,}}
           >
-            {loading ? "Analyzing…" : "Analyze Prompt"}
+            {loading ? <CircularProgress size={14} thickness={5} sx={{ color: "#09090B" }} /> : "Start"}
           </Button>
         </Stack>
 
