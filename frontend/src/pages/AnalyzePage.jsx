@@ -176,7 +176,9 @@ export default function AnalyzePage() {
                 <AutoAwesomeIcon fontSize="small" />
               )
             }
-            sx={{ flex: 1, py: 1.25 }}
+            sx={{
+      flexGrow: 1,
+      minWidth: 180,}}
           >
             {loading ? "Analyzing…" : "Analyze Prompt"}
           </Button>
